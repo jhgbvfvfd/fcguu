@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CYBERAPI — จัดการสินค้าและสต็อก (1 บรรทัด = 1 ชิ้น)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-canvas: #09090b;
+      --bg-sidebar: #0c0c0e;
+      --bg-card: #111113;
+      --bg-elevated: #17171b;
+      --border-subtle: #222227;
+      --border-hover: #34343d;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent: #6366f1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', 'IBM Plex Sans Thai', sans-serif;
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    aside {
+      width: 240px; background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 16px 12px; flex-shrink: 0;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 6px 10px; }
+    .brand-logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: #fafafa; color: #09090b;
+      display: grid; place-items: center; font-weight: 700; font-size: 13px;
+    }
+    .nav-label { font-size: 11px; color: var(--text-muted); padding: 16px 10px 6px; }
+    .nav-item {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; padding: 8px 12px; border-radius: 8px; border: none;
+      background: transparent; color: var(--text-secondary);
+      font-size: 13px; font-family: inherit; cursor: pointer; text-align: left;
+    }
+    .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+    .nav-item.active { background: #1e1b4b; color: #c7d2fe; font-weight: 600; }
+    main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    header {
+      height: 56px; border-bottom: 1px solid var(--border-subtle);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 28px;
+    }
+    .container { padding: 24px; max-width: none; width: 100%; flex: 1; display: flex; flex-direction: column; }
+    .page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+    .page-title { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; }
+    .page-sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 500;
+      font-family: inherit; cursor: pointer; border: 1px solid var(--border-subtle);
+      background: var(--bg-card); color: var(--text-primary); transition: 0.15s ease;
+    }
+    .btn:hover { border-color: var(--border-hover); background: var(--bg-elevated); }
+    .btn-primary { background: #fafafa; color: #09090b; border-color: #fafafa; font-weight: 600; }
+    .btn-primary:hover { background: #e4e4e7; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .kpi-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px 20px; }
+    .kpi-label { font-size: 12px; color: var(--text-secondary); }
+    .kpi-val { font-size: 25px; font-weight: 700; margin: 6px 0 8px; }
+    .kpi-meta { font-size: 12px; color: var(--text-muted); }
+    .filter-panel {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .tabs { display: flex; gap: 4px; background: var(--bg-canvas); padding: 4px; border-radius: 8px; border: 1px solid var(--border-subtle); flex-wrap: wrap; }
+    .tab-btn { padding: 6px 12px; border-radius: 6px; border: none; background: transparent; color: var(--text-secondary); font-size: 12px; font-family: inherit; cursor: pointer; }
+    .tab-btn.active { background: #1e1b4b; color: #e0e7ff; font-weight: 600; }
+    .controls-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .input, .select, textarea {
+      background: var(--bg-canvas); border: 1px solid var(--border-subtle);
+      color: var(--text-primary); padding: 8px 12px; border-radius: 8px;
+      font-size: 12.5px; font-family: inherit; outline: none;
+    }
+    .input:focus, .select:focus, textarea:focus { border-color: var(--accent); }
+    .table-wrap { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { font-size: 11.5px; font-weight: 500; color: var(--text-muted); padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); white-space: nowrap; }
+    td { padding: 14px 16px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .prod-cell { display: flex; align-items: center; gap: 12px; }
+    .thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-subtle); background: #18181b; flex-shrink: 0; }
+    .prod-title { font-weight: 600; color: var(--text-primary); }
+    .prod-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; place-items: center; z-index: 50; padding: 16px; }
+    .modal-backdrop.open { display: grid; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; width: 100%; max-width: 540px; padding: 24px; }
+    label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <aside>
+    <div>
+      <div class="brand">
+        <div class="brand-logo">C</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;">CYBERAPI</div>
+          <div style="font-size:11px;color:var(--text-muted);">จัดการร้าน</div>
+        </div>
+      </div>
+      <div class="nav-label">จัดการร้าน</div>
+      <button class="nav-item"><span>แดชบอร์ด</span></button>
+      <button class="nav-item active"><span>จัดการสินค้า</span><span class="mono" id="nav-count">0</span></button>
+    </div>
+    <div style="padding:10px;border-top:1px solid var(--border-subtle);font-size:11.5px;color:var(--text-secondary);">
+      <strong style="color:var(--text-primary);display:block;">Vghh Vvgg</strong>
+      safgg19042565@gmail.com
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div style="font-size:12.5px;color:var(--text-secondary);">จัดการร้าน &nbsp;›&nbsp; <strong style="color:var(--text-primary);">จัดการสินค้า</strong></div>
+      <div class="btn-row">
+        <button class="btn" onclick="exportCsv()">ส่งออก CSV</button>
+        <button class="btn btn-primary" onclick="openStockModal(products[0]?.id)">จัดการสต็อก (1 บรรทัด = 1 ชิ้น)</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">จัดการสินค้า</h1>
+          <p class="page-sub">แสดงภาพสินค้า พร้อมระบบนับสต็อกอัตโนมัติแบบ 1 บรรทัด = 1 ชิ้น</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="kpi-container"></div>
+
+      <div class="filter-panel">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div class="tabs" id="status-tabs">
+            <button class="tab-btn active" data-status="all" onclick="setStatus('all')">ทั้งหมด</button>
+            <button class="tab-btn" data-status="active" onclick="setStatus('active')">พร้อมจำหน่าย</button>
+            <button class="tab-btn" data-status="low_stock" onclick="setStatus('low_stock')">สต็อกใกล้หมด</button>
+            <button class="tab-btn" data-status="out_of_stock" onclick="setStatus('out_of_stock')">สินค้าหมด</button>
+          </div>
+          <button class="btn" onclick="resetFilters()">ล้างตัวกรอง</button>
+        </div>
+        <div class="controls-row">
+          <input id="search-input" class="input" style="flex:1;min-width:240px;" placeholder="ค้นหาชื่อสินค้า หรือรหัส SKU..." oninput="render()" />
+          <select id="cat-select" class="select" onchange="render()">
+            <option value="all">หมวดหมู่: ทั้งหมด</option>
+            <option value="คีย์เกม & สตรีมมิ่ง">คีย์เกม & สตรีมมิ่ง</option>
+            <option value="ซอฟต์แวร์ & ครีเอทีฟ">ซอฟต์แวร์ & ครีเอทีฟ</option>
+            <option value="เติมเกมผ่าน UID / API">เติมเกมผ่าน UID / API</option>
+            <option value="คลาวด์ & เซิร์ฟเวอร์">คลาวด์ & เซิร์ฟเวอร์</option>
+            <option value="บัตรเติมเงินดิจิทัล">บัตรเติมเงินดิจิทัล</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>สินค้า</th>
+              <th>หมวดหมู่ · การจัดส่ง</th>
+              <th style="text-align:right;">ราคาขาย / ทุน</th>
+              <th>สต็อก (1 บรรทัด = 1 ชิ้น)</th>
+              <th>สถานะ · ยอดขาย</th>
+              <th style="text-align:right;">การจัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="product-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="stock-modal">
+    <div class="modal">
+      <h2 id="stock-modal-title" style="font-size:16px;font-weight:700;">จัดการสต็อก (1 บรรทัด = 1 ชิ้น)</h2>
+      <p style="font-size:12px;color:var(--text-secondary);margin:4px 0 14px;">วางรหัสคีย์หรือบัญชีบรรทัดละ 1 ชิ้น ระบบจะนับจำนวนบรรทัดเป็นจำนวนสต็อกอัตโนมัติ</p>
+      <textarea id="stock-lines" class="mono" rows="8" style="width:100%;line-height:1.6;" placeholder="บรรทัดที่ 1 = ชิ้นที่ 1&#10;บรรทัดที่ 2 = ชิ้นที่ 2"></textarea>
+      <div class="btn-row" style="justify-content:flex-end;margin-top:16px;">
+        <button class="btn" onclick="closeStockModal()">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="saveStockLines()">บันทึกสต็อก</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let products = [
+  {
+    "id": "prod-1",
+    "sku": "CYB-NF-4K30",
+    "name": "Netflix Ultra HD 4K (จอส่วนตัว 30 วัน)",
+    "subtitle": "รับประกันตลอดอายุการใช้งาน · มีพินล็อกจอส่วนตัว",
+    "imageUrl": "/src/assets/images/prod_streaming_cinema_1794123175710.jpg",
+    "category": "คีย์เกม & สตรีมมิ่ง",
+    "price": 99,
+    "cost": 62,
+    "stock": 5,
+    "lowStockThreshold": 3,
+    "soldCount": 318,
+    "deliveryType": "account",
+    "deliveryLabel": "ส่งบัญชีพร้อมใช้ (1 บรรทัด = 1 ชิ้น)",
+    "stockKeys": [
+      "nf4k_user01@cybermail.io:Pass#9981 | PIN 1102",
+      "nf4k_user02@cybermail.io:Pass#9982 | PIN 2409",
+      "nf4k_user03@cybermail.io:Pass#9983 | PIN 3810",
+      "nf4k_user04@cybermail.io:Pass#9984 | PIN 4512",
+      "nf4k_user05@cybermail.io:Pass#9985 | PIN 8821"
+    ],
+    "isHidden": false,
+    "updatedAt": "2026-11-08 11:42"
+  },
+  {
+    "id": "prod-2",
+    "sku": "CYB-VAL-2400",
+    "name": "Valorant Points 2,400 VP (เติมผ่าน Riot ID ทันที)",
+    "subtitle": "เซิร์ฟเวอร์ไทยแท้ · เข้าไวใน 10 วินาทีผ่าน API",
+    "imageUrl": "/src/assets/images/prod_gaming_valorant_1794123178143.jpg",
+    "category": "เติมเกมผ่าน UID / API",
+    "price": 565,
+    "cost": 510,
+    "stock": 4,
+    "lowStockThreshold": 2,
+    "soldCount": 204,
+    "deliveryType": "auto_key",
+    "deliveryLabel": "ส่งคีย์อัตโนมัติ (1 บรรทัด = 1 ชิ้น)",
+    "stockKeys": [
+      "VP-TH-2400-8891-A102",
+      "VP-TH-2400-8892-B409",
+      "VP-TH-2400-8893-C712",
+      "VP-TH-2400-8894-D994"
+    ],
+    "isHidden": false,
+    "updatedAt": "2026-11-08 11:30"
+  },
+  {
+    "id": "prod-3",
+    "sku": "CYB-YT-FAM1M",
+    "name": "YouTube Premium + Music 30 วัน (ต่อเมลเดิมได้)",
+    "subtitle": "ไม่ต้องเปลี่ยนอีเมล · ฟังเพลงปิดหน้าจอ ไม่มีโฆษณาคั่น",
+    "imageUrl": "/src/assets/images/prod_streaming_cinema_1794123175710.jpg",
+    "category": "คีย์เกม & สตรีมมิ่ง",
+    "price": 49,
+    "cost": 25,
+    "stock": 2,
+    "lowStockThreshold": 5,
+    "soldCount": 512,
+    "deliveryType": "auto_key",
+    "deliveryLabel": "ส่งคีย์อัตโนมัติ (1 บรรทัด = 1 ชิ้น)",
+    "stockKeys": [
+      "YT-INV-2026-A89F-9912",
+      "YT-INV-2026-B12C-4410"
+    ],
+    "isHidden": false,
+    "updatedAt": "2026-11-08 10:55"
+  },
+  {
+    "id": "prod-4",
+    "sku": "CYB-CANVA-PRO",
+    "name": "Canva Pro Teams Invite Link (ใช้งาน 30 วัน)",
+    "subtitle": "ปลดล็อกฟอนต์ไทยพรีเมียม ลบพื้นหลัง AI Magic Studio",
+    "imageUrl": "/src/assets/images/prod_creative_software_1794123177959.jpg",
+    "category": "ซอฟต์แวร์ & ครีเอทีฟ",
+    "price": 39,
+    "cost": 15,
+    "stock": 4,
+    "lowStockThreshold": 2,
+    "soldCount": 429,
+    "deliveryType": "auto_key",
+    "deliveryLabel": "ส่งคีย์อัตโนมัติ (1 บรรทัด = 1 ชิ้น)",
+    "stockKeys": [
+      "https://canva.com/brand/join?token=cyb_8812a",
+      "https://canva.com/brand/join?token=cyb_8812b",
+      "https://canva.com/brand/join?token=cyb_8812c",
+      "https://canva.com/brand/join?token=cyb_8812d"
+    ],
+    "isHidden": false,
+    "updatedAt": "2026-11-08 09:20"
+  },
+  {
+    "id": "prod-5",
+    "sku": "CYB-STEAM-200",
+    "name": "Steam Wallet Code 200 THB (คีย์แท้โซนไทย)",
+    "subtitle": "รับรหัสเติมเข้ากระเป๋า Steam ทันทีหลังชำระเงิน",
+    "imageUrl": "/src/assets/images/prod_gaming_valorant_1794123178143.jpg",
+    "category": "บัตรเติมเงินดิจิทัล",
+    "price": 198,
+    "cost": 186,
+    "stock": 0,
+    "lowStockThreshold": 3,
+    "soldCount": 167,
+    "deliveryType": "auto_key",
+    "deliveryLabel": "ส่งคีย์อัตโนมัติ (1 บรรทัด = 1 ชิ้น)",
+    "stockKeys": [],
+    "isHidden": false,
+    "updatedAt": "2026-11-07 22:15"
+  },
+  {
+    "id": "prod-6",
+    "sku": "CYB-VPS-NVME4",
+    "name": "Cloud VPS Thailand NVMe 4 vCPU / 8GB RAM (รายเดือน)",
+    "subtitle": "Data Center กรุงเทพฯ · ปิงต่ำ 1-3ms · กันยิง DDoS ฟรี",
+    "imageUrl": "/src/assets/images/prod_cloud_server_1794123179393.jpg",
+    "category": "คลาวด์ & เซิร์ฟเวอร์",
+    "price": 450,
+    "cost": 290,
+    "stock": 2,
+    "lowStockThreshold": 3,
+    "soldCount": 64,
+    "deliveryType": "account",
+    "deliveryLabel": "ส่งบัญชีพร้อมใช้ (1 บรรทัด = 1 ชิ้น)",
+    "stockKeys": [
+      "103.212.18.41 | root:Vps#Thai991",
+      "103.212.18.42 | root:Vps#Thai992"
+    ],
+    "isHidden": false,
+    "updatedAt": "2026-11-07 19:40"
+  },
+  {
+    "id": "prod-7",
+    "sku": "CYB-ROBUX-800",
+    "name": "Roblox Gift Card 800 Robux (Global Redeem Key)",
+    "subtitle": "แลกได้ทุกโซน แถมไอเทมพิเศษประจำเดือน",
+    "imageUrl": "/src/assets/images/prod_gaming_valorant_1794123178143.jpg",
+    "category": "บัตรเติมเงินดิจิทัล",
+    "price": 315,
+    "cost": 275,
+    "stock": 3,
+    "lowStockThreshold": 2,
+    "soldCount": 142,
+    "deliveryType": "auto_key",
+    "deliveryLabel": "ส่งคีย์อัตโนมัติ (1 บรรทัด = 1 ชิ้น)",
+    "stockKeys": [
+      "RBX-9910-2281-7741",
+      "RBX-9910-2281-7742",
+      "RBX-9910-2281-7743"
+    ],
+    "isHidden": false,
+    "updatedAt": "2026-11-07 16:05"
+  },
+  {
+    "id": "prod-8",
+    "sku": "CYB-CAPCUT-PRO",
+    "name": "CapCut Pro Account 30 วัน (รองรับ PC / มือถือ / iPad)",
+    "subtitle": "ส่งออก 4K 60fps ใช้เอฟเฟกต์ Pro และ Auto Captions ครบ",
+    "imageUrl": "/src/assets/images/prod_creative_software_1794123177959.jpg",
+    "category": "ซอฟต์แวร์ & ครีเอทีฟ",
+    "price": 79,
+    "cost": 42,
+    "stock": 2,
+    "lowStockThreshold": 2,
+    "soldCount": 93,
+    "deliveryType": "account",
+    "deliveryLabel": "ส่งบัญชีพร้อมใช้ (1 บรรทัด = 1 ชิ้น)",
+    "stockKeys": [
+      "capcut_pro01@cybermail.io:Cap#2026",
+      "capcut_pro02@cybermail.io:Cap#2027"
+    ],
+    "isHidden": true,
+    "updatedAt": "2026-11-06 14:12"
+  }
+];
+    let activeStatus = 'all';
+    let currentStockId = null;
+
+    function getStatus(p) {
+      if (p.isHidden) return { key: 'hidden', label: 'ซ่อนจากร้าน', color: '#a1a1aa' };
+      if (p.stock <= 0) return { key: 'out_of_stock', label: 'สินค้าหมด', color: '#ef4444' };
+      if (p.stock <= p.lowStockThreshold) return { key: 'low_stock', label: 'สต็อกใกล้หมด', color: '#f59e0b' };
+      return { key: 'active', label: 'พร้อมจำหน่าย', color: '#22c55e' };
+    }
+
+    function setStatus(st) {
+      activeStatus = st;
+      document.querySelectorAll('#status-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.status === st));
+      render();
+    }
+
+    function resetFilters() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('cat-select').value = 'all';
+      setStatus('all');
+    }
+
+    function openStockModal(id) {
+      currentStockId = id;
+      const item = products.find(p => p.id === id);
+      if (!item) return;
+      document.getElementById('stock-modal-title').textContent = 'สต็อก: ' + item.name;
+      document.getElementById('stock-lines').value = (item.stockKeys || []).join('\n');
+      document.getElementById('stock-modal').classList.add('open');
+    }
+
+    function closeStockModal() {
+      document.getElementById('stock-modal').classList.remove('open');
+    }
+
+    function saveStockLines() {
+      const item = products.find(p => p.id === currentStockId);
+      if (item) {
+        const lines = document.getElementById('stock-lines').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        item.stockKeys = lines;
+        item.stock = lines.length;
+      }
+      closeStockModal();
+      render();
+    }
+
+    function exportCsv() {
+      const header = 'SKU,Name,Category,Price,Stock\n';
+      const rows = products.map(p => `"${p.sku}","${p.name}","${p.category}",${p.price},${p.stock}`).join('\n');
+      const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'cyberapi-products.csv';
+      a.click();
+    }
+
+    function render() {
+      const q = document.getElementById('search-input').value.trim().toLowerCase();
+      const cat = document.getElementById('cat-select').value;
+      document.getElementById('nav-count').textContent = products.length;
+
+      const totalStock = products.reduce((s, p) => s + p.stock, 0);
+      const lowOrOut = products.filter(p => p.stock <= p.lowStockThreshold).length;
+      const invValue = products.reduce((s, p) => s + p.price * p.stock, 0);
+
+      document.getElementById('kpi-container').innerHTML = `
+        <div class="kpi-card"><div class="kpi-label">สินค้าทั้งหมด</div><div class="kpi-val mono">${products.length}</div><div class="kpi-meta">พร้อมขาย ${products.filter(p => !p.isHidden && p.stock > 0).length} รายการ</div></div>
+        <div class="kpi-card"><div class="kpi-label">สต็อกรวม (1 บรรทัด = 1 ชิ้น)</div><div class="kpi-val mono">${totalStock}</div><div class="kpi-meta">นับจากจำนวนบรรทัดในคลัง</div></div>
+        <div class="kpi-card"><div class="kpi-label">ต้องเติมสต็อก</div><div class="kpi-val mono">${lowOrOut}</div><div class="kpi-meta">ใกล้หมดหรือสินค้าหมด</div></div>
+        <div class="kpi-card"><div class="kpi-label">มูลค่าสต็อกรวม</div><div class="kpi-val mono">฿${invValue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</div><div class="kpi-meta">ตามราคาขายปัจจุบัน</div></div>
+      `;
+
+      const list = products.filter(p => {
+        if (q && !(p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q))) return false;
+        if (cat !== 'all' && p.category !== cat) return false;
+        if (activeStatus !== 'all' && getStatus(p).key !== activeStatus) return false;
+        return true;
+      });
+
+      document.getElementById('product-tbody').innerHTML = list.map(p => {
+        const st = getStatus(p);
+        const nextLine = p.stockKeys && p.stockKeys[0] ? p.stockKeys[0] : 'ไม่มีข้อมูลในบรรทัด';
+        return `
+          <tr>
+            <td>
+              <div class="prod-cell">
+                <img class="thumb" src="${p.imageUrl}" alt="${p.name}" onerror="this.style.display='none'" />
+                <div>
+                  <div class="prod-title">${p.name}</div>
+                  <div class="prod-sub"><span class="mono">${p.sku}</span> · ${p.subtitle}</div>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--text-secondary);font-size:12px;">${p.category}</td>
+            <td class="mono" style="text-align:right;font-weight:600;">฿${p.price.toFixed(2)}<div style="font-size:11px;color:var(--text-muted);font-weight:400;">ทุน ฿${p.cost}</div></td>
+            <td>
+              <div class="mono" style="font-weight:600;">${p.stock} ชิ้น (${(p.stockKeys||[]).length} บรรทัด)</div>
+              <div class="mono" style="font-size:11px;color:var(--text-muted);max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">บรรทัดที่ 1: ${nextLine}</div>
+            </td>
+            <td><div style="color:${st.color};font-weight:500;font-size:12px;">${st.label}</div><div class="mono" style="font-size:11px;color:var(--text-muted);">ขายแล้ว ${p.soldCount}</div></td>
+            <td style="text-align:right;">
+              <button class="btn" onclick="openStockModal('${p.id}')">สต็อกรายบรรทัด</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+    render();
+  </script>
+</body>
+</html>

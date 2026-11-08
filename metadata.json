@@ -1,0 +1,6 @@
+{
+  "name": "CYBERAPI Admin — ระบบจัดการสินค้ามินิมอล",
+  "description": "ระบบจัดการสินค้าและสต็อกดิจิทัลดีไซน์มินิมอลโทนดาร์ก พร้อมตัวกรองค้นหาอัจฉริยะ ปุ่มจัดการข้อมูลที่เข้าถึงง่าย และส่งออกโค้ด HTML 1 ไฟล์",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
